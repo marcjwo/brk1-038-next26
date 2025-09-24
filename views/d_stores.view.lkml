@@ -85,11 +85,18 @@ view: d_stores {
     sql: ${TABLE}."state" ;;
   }
 
+  # dimension: storename {
+  #   hidden: no
+  #   type: string
+  #   sql: ${TABLE}."storename" ;;
+  # }
+
   dimension: storename {
     hidden: no
     type: string
-    sql: ${TABLE}."storename" ;;
+    sql: CASE WHEN ${TABLE}."storename" IS NOT NULL THEN ${TABLE}."storename" ELSE 'Online Transaction' END ;;
   }
+
 
   dimension: zipcode {
     hidden: yes
