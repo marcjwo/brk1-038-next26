@@ -19,6 +19,6 @@ explore: transactions {
   join: d_customers {
     sql_on: ${transactions.customerid} = ${d_customers.customerid} ;;
     relationship: many_to_one
-    # sql_where:  ;;
+    sql_where: ${transactions.customerid} is NOT NULL ;;
   }
 }
