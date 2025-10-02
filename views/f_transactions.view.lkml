@@ -65,6 +65,7 @@ view: f_transactions {
     sql: ${quantity} ;;
   }
 
+
   dimension: saleschannelid {
     hidden: yes
     type: number
@@ -105,6 +106,8 @@ view: f_transactions {
     sql: ${TABLE}."unitprice" ;;
   }
   measure: count {
+    description: "Number of unique orders"
+    synonyms: ["Number of orders","Number of transactions"]
     type: count
     drill_fields: [salesid]
   }
