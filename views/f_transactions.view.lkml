@@ -4,7 +4,8 @@ view: f_transactions {
   fields_hidden_by_default: yes
   # The sql_table_name parameter indicates the underlying database table
   # to be used for all fields in this view.
-  sql_table_name: public.f_transactions ;;
+  sql_table_name: public.v_transactions ;;
+  # This is based on v_transactions now, which is a view on top of full transactions having everything until today!
   drill_fields: [salesid]
 
   # This primary key is the unique key for this table in the underlying database.
