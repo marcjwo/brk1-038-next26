@@ -106,7 +106,8 @@ view: f_transactions {
     sql: ${TABLE}."unitprice" ;;
   }
   measure: count {
-    description: "Number of unique orders"
+    hidden: no
+    description: "Number of unique orders/transactions"
     synonyms: ["Number of orders","Number of transactions"]
     type: count
     drill_fields: [salesid]
