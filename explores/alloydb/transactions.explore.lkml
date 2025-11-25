@@ -1,4 +1,4 @@
-include: "/views/*.view"
+include: "/views/alloydb/*.view"
 explore: transactions {
   label: "Global Gadgets Transactions - AlloyDB"
   description: "This explore is based on Global Gadgets transactions hosted on AlloyDB - its enriched with products and stores data to deliver insights from that angle."
