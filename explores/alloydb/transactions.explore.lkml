@@ -21,4 +21,8 @@ explore: transactions {
     relationship: many_to_one
     sql_where: ${transactions.customerid} is NOT NULL ;;
   }
+  join: d_saleschannels {
+    sql_on: ${transactions.saleschannelid} = ${d_saleschannels.saleschannelid} ;;
+    relationship: many_to_one
+  }
 }

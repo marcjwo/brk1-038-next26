@@ -25,6 +25,7 @@ view: sales {
     t.lastname,
     t.customer_city,
     t.customer_country,
+    t.customer_registrationdate,
     t.loyaltytier,
 
     -- Product Dimension
@@ -33,6 +34,7 @@ view: sales {
     t.category,
     t.brand,
     t.product_master_price,
+    t.product_cost,
 
     -- Store Dimension
     t.storeid,
@@ -42,6 +44,7 @@ view: sales {
     t.currency,
     t.latitude,
     t.longitude,
+    t.store_country,
 
     -- Sales Channel Dimension
     t.saleschannelname,
@@ -76,15 +79,18 @@ FROM
             c.city AS customer_city,
             c.country AS customer_country,
             c.loyaltytier,
+            c.registrationdate as customer_registrationdate,
 
             -- D_PRODUCTS
             p.productname,
             p.category,
             p.brand,
             p.unitprice AS product_master_price,
+            p.cost AS product_cost,
 
             -- D_STORES
             s.storename,
+            s.country as store_country,
             s.city AS store_city,
             s.region AS store_region,
             s.currency,
@@ -115,6 +121,16 @@ ORDER BY t.salesid;;
     sql: ${TABLE}.salesid ;;
   }
 
+  dimension: quantity {
+    type: number
+    sql: ${TABLE}.quantity ;;
+  }
+
+  dimension: total_price {
+    type: number
+    sql: ${TABLE}.totalprice ;;
+  }
+
   # --- Metrics (Measures) ---
   measure: count {
     type: count
@@ -124,20 +140,59 @@ ORDER BY t.salesid;;
   measure: total_revenue {
     label: "Total Sales Revenue"
     type: sum
-    sql: ${TABLE}.totalprice ;;
-    value_format_name: usd
+    sql: ${total_price} ;;
+    # value_format_name: usd
+    value_format: "0.000,,\" M\""
   }
 
   measure: total_quantity_sold {
     type: sum
-    sql: ${TABLE}.quantity ;;
+    sql: ${quantity} ;;
+  }
+
+  dimension: transaction_cost {
+    type: number
+    sql: ${quantity} * ${product_cost} ;;
+    value_format_name: usd
+  }
+
+  measure: total_cost_sold {
+    type: sum
+    sql: ${transaction_cost} ;;
+    value_format_name: usd
+  }
+
+  dimension: transaction_margin {
+    type: number
+    sql: ${total_price}-${transaction_cost} ;;
+    value_format_name: usd
+  }
+
+  measure: total_transaction_margin {
+    sql: ${transaction_margin} ;;
+    value_format_name: usd
+    type: sum
+  }
+
+  measure: gross_margin_percentage {
+    value_format_name: percent_2
+    type: number
+    sql: ${total_transaction_margin}/${total_revenue}
+    ;;
+  }
+
+  measure: average_transaction_margin {
+    sql: ${transaction_margin} ;;
+    value_format_name: usd
+    type: average
   }
 
   measure: average_transaction_value {
     label: "Average Transaction Value"
     type: average
-    sql: ${TABLE}.totalprice ;;
+    sql: ${total_price} ;;
     value_format_name: usd
+
   }
 
   # --- Transaction/Fact Columns ---
@@ -155,7 +210,7 @@ ORDER BY t.salesid;;
   # --- Date Dimensions ---
   dimension_group: transaction_date {
     type: time
-    timeframes: [date, week, month, quarter, year, raw]
+    timeframes: [date, week, month,month_name, quarter, year, raw]
     sql: ${TABLE}.transaction_date ;;
   }
 
@@ -190,11 +245,37 @@ ORDER BY t.salesid;;
     sql: ${TABLE}.customer_country ;;
   }
 
-  # dimension: loyalty_tier {
-  #   type: tier
-  #   tiers: [ "Bronze", "Silver", "Gold", "Platinum"]
-  #   sql: ${TABLE}.loyaltytier ;;
-  # }
+  dimension_group: customer_registration_date {
+    type: time
+    timeframes: [date, month]
+    sql: ${TABLE}.customer_registrationdate ;;
+  }
+
+  dimension_group: between_today_and_registration {
+    type: duration
+    intervals: [day, month]
+    sql_start:  ${customer_registration_date_date};;
+    sql_end:  CURRENT_DATE() ;;
+  }
+
+  dimension_group: between_transaction_and_registration  {
+    type: duration
+    intervals: [day, month]
+    sql_start: ${customer_registration_date_date} ;;
+    sql_end: ${transaction_date_date} ;;
+  }
+
+  dimension: sanity_check {
+    hidden: no
+    type: yesno
+    sql: DATE_DIFF(${transaction_date_date},${customer_registration_date_date}, DAY) > 1 ;;
+  }
+
+  dimension: loyalty_tier {
+    type: string
+    # tiers: [ "Bronze", "Silver", "Gold", "Platinum"]
+    sql: ${TABLE}.loyaltytier ;;
+  }
 
   # --- Product Dimensions (d_products) ---
   dimension: productid {
@@ -217,6 +298,24 @@ ORDER BY t.salesid;;
     sql: ${TABLE}.brand ;;
   }
 
+  dimension: product_cost {
+    type: number
+    sql: ${TABLE}.product_cost ;;
+    value_format_name: usd
+  }
+
+  dimension: product_master_price {
+    type: number
+    sql: ${TABLE}.product_product_master_price ;;
+    value_format_name: usd
+  }
+
+  dimension: product_margin {
+    type: number
+    sql:  ${product_master_price}-${product_cost}  ;;
+    value_format_name: usd
+  }
+
   # --- Store Dimensions (d_stores) ---
   dimension: store_name {
     type: string
@@ -231,6 +330,22 @@ ORDER BY t.salesid;;
   dimension: store_region {
     type: string
     sql: ${TABLE}.store_region ;;
+  }
+  dimension: store_country {
+    type: string
+    sql: ${TABLE}.store_country ;;
+  }
+  dimension: store_country_1 {
+    type: string
+    map_layer_name: countries
+    sql:
+    CASE
+    WHEN ${store_country} = "JP" THEN "Japan"
+    WHEN ${store_country} = "US" THEN "United States"
+    WHEN ${store_country} = "FR" THEN "France"
+    WHEN ${store_country} = "GB" THEN "United Kingdom"
+    END
+    ;;
   }
 
   dimension: store_location {

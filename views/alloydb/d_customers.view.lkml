@@ -11,6 +11,8 @@ view: d_customers {
   # You need to define a primary key in a view in order to join to other views.
 
   dimension: customerid {
+    label: "Customer ID"
+    hidden: no
     primary_key: yes
     type: number
     sql: ${TABLE}."customerid" ;;
@@ -36,11 +38,21 @@ view: d_customers {
   }
 
   dimension: customertype {
+    label: "Type"
+    hidden: no
     type: string
     sql: ${TABLE}."customertype" ;;
   }
 
+  dimension: loyaltytier {
+    label: "Loyalty Tier"
+    hidden: no
+    type: string
+    sql: ${TABLE}."loyaltytier" ;;
+  }
+
   dimension: email {
+    hidden: no
     type: string
     sql: ${TABLE}."email" ;;
   }
@@ -59,11 +71,14 @@ view: d_customers {
     hidden: no
     type: string
     sql: ${firstname}||' '||${lastname} ;;
+    drill_fields: [email]
   }
   # Dates and timestamps can be represented in Looker using a dimension group of type: time.
   # Looker converts dates and timestamps to the specified timeframes within the dimension group.
 
   dimension_group: registrationdate {
+    label: "Registration Date"
+    hidden: no
     type: time
     timeframes: [raw, date, week, month, quarter, year]
     convert_tz: no
@@ -81,6 +96,8 @@ view: d_customers {
     sql: ${TABLE}."zipcode" ;;
   }
   measure: count {
+    hidden: no
+    label: "Customer Count"
     type: count
     drill_fields: [customerid, lastname, firstname]
   }

@@ -8,18 +8,21 @@ SELECT
     t.reviewername,
     t.rating,
     t.reviewtext,
-    t.reviewdate
+    t.reviewdate,
+    t.productname
 FROM
     EXTERNAL_QUERY('gemini-looker-demo-dataset.us.global_gadgets_alloydb', '''
         SELECT
-            reviewid,
-            productid,
-            reviewername,
-            rating,
-            reviewtext,
-            reviewdate
+            pr.reviewid,
+            pr.productid,
+            pr.reviewername,
+            pr.rating,
+            pr.reviewtext,
+            pr.reviewdate,
+            p.productname
         FROM
-            d_productreviews
+            d_productreviews pr
+        INNER JOIN d_products p ON pr.productid = p.productid
     ''') AS t;;
   }
 # --- Primary Key (for review) ---
@@ -35,6 +38,12 @@ FROM
     sql: ${TABLE}.productid ;;
   }
 
+  dimension: productname {
+    type: string
+    sql: ${TABLE}.productname ;;
+    # drill_fields: [review_score,review_text]
+  }
+
   dimension: reviewer_name {
     type: string
     sql: ${TABLE}.reviewername ;;
@@ -43,6 +52,12 @@ FROM
   dimension: rating {
     type: number
     sql: ${TABLE}.rating ;;
+  }
+
+  measure: average_rating {
+    type: average
+    sql: ${rating} ;;
+    drill_fields: [review_text]
   }
 
   dimension: review_text {

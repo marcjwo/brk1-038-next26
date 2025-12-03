@@ -92,6 +92,7 @@ view: d_stores {
   # }
 
   dimension: storename {
+    label: "Store Name"
     hidden: no
     type: string
     sql: CASE WHEN ${TABLE}."storename" IS NOT NULL THEN ${TABLE}."storename" ELSE 'Online Transaction' END ;;

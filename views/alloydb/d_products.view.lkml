@@ -43,6 +43,7 @@ view: d_products {
   }
 
   dimension: productname {
+    label: "Product Name"
     hidden: no
     type: string
     sql: ${TABLE}."productname" ;;

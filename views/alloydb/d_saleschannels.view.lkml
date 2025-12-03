@@ -20,6 +20,7 @@ view: d_saleschannels {
     # This dimension will be called "Saleschannelname" in Explore.
 
   dimension: saleschannelname {
+    label: "Saleschannel Name"
     hidden: no
     type: string
     sql: ${TABLE}."saleschannelname" ;;
