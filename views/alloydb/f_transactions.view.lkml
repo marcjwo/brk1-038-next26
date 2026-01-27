@@ -102,6 +102,13 @@ view: f_transactions {
     value_format_name: usd
   }
 
+  measure: total_online_sales {
+    hidden: no
+    type: number
+    sql: SUM(${totalprice}) FILTER (WHERE ${saleschannelid} = 1) ;;
+    value_format_name: usd
+  }
+
   dimension: unitprice {
     type: number
     sql: ${TABLE}."unitprice" ;;
