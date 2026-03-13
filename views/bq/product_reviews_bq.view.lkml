@@ -1,30 +1,31 @@
-view: product_reviews {
-  derived_table: {
-    datagroup_trigger: bq_refresh
-    sql:
-SELECT
-    t.reviewid,
-    t.productid,
-    t.reviewername,
-    t.rating,
-    t.reviewtext,
-    t.reviewdate,
-    t.productname
-FROM
-    EXTERNAL_QUERY('gemini-looker-demo-dataset.us.global_gadgets_alloydb', '''
-        SELECT
-            pr.reviewid,
-            pr.productid,
-            pr.reviewername,
-            pr.rating,
-            pr.reviewtext,
-            pr.reviewdate,
-            p.productname
-        FROM
-            d_productreviews pr
-        INNER JOIN d_products p ON pr.productid = p.productid
-    ''') AS t;;
-  }
+view: product_reviews_bq {
+  sql_table_name: `gemini-looker-demo-dataset.cymbal_gadgets.product_reviews` ;;
+#   derived_table: {
+#     datagroup_trigger: bq_refresh
+#     sql:
+# SELECT
+#     t.reviewid,
+#     t.productid,
+#     t.reviewername,
+#     t.rating,
+#     t.reviewtext,
+#     t.reviewdate,
+#     t.productname
+# FROM
+#     EXTERNAL_QUERY('gemini-looker-demo-dataset.us.global_gadgets_alloydb', '''
+#         SELECT
+#             pr.reviewid,
+#             pr.productid,
+#             pr.reviewername,
+#             pr.rating,
+#             pr.reviewtext,
+#             pr.reviewdate,
+#             p.productname
+#         FROM
+#             d_productreviews pr
+#         INNER JOIN d_products p ON pr.productid = p.productid
+#     ''') AS t;;
+#   }
 # --- Primary Key (for review) ---
   dimension: reviewid {
     primary_key: yes

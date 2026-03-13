@@ -1,118 +1,5 @@
-view: sales {
-  derived_table: {
-    datagroup_trigger: bq_refresh
-    sql:
-    SELECT
-    -- Fact/Transaction Columns
-    t.salesid,
-    t.orderid,
-    t.quantity,
-    t.transaction_unitprice,
-    t.discountamount,
-    t.shippingcost,
-    t.taxamount,
-    t.totalprice,
-
-    -- Date Dimension
-    t.transaction_date,
-    t.year,
-    t.quarter,
-    t.isweekend,
-
-    -- Customer Dimension
-    t.customerid,
-    t.firstname,
-    t.lastname,
-    t.customer_city,
-    t.customer_country,
-    t.customer_registrationdate,
-    t.loyaltytier,
-
-    -- Product Dimension
-    t.productid,
-    t.productname,
-    t.category,
-    t.brand,
-    t.product_master_price,
-    t.product_cost,
-
-    -- Store Dimension
-    t.storeid,
-    t.storename,
-    t.store_city,
-    t.store_region,
-    t.currency,
-    t.latitude,
-    t.longitude,
-    t.store_country,
-
-    -- Sales Channel Dimension
-    t.saleschannelname,
-
-    -- Payment Type Dimension
-    t.paymenttypename
-FROM
-    EXTERNAL_QUERY('gemini-looker-demo-dataset.us.global_gadgets_alloydb', '''
-        SELECT
-            -- Transaction Metrics & Keys
-            t.salesid,
-            t.orderid,
-            t.customerid,
-            t.productid,
-            t.storeid,
-            t.quantity,
-            t.unitprice AS transaction_unitprice,
-            t.discountamount,
-            t.shippingcost,
-            t.taxamount,
-            t.totalprice,
-
-            -- D_DATES
-            d.date AS transaction_date,
-            d.year,
-            d.quarter,
-            d.isweekend,
-
-            -- D_CUSTOMERS
-            c.firstname,
-            c.lastname,
-            c.city AS customer_city,
-            c.country AS customer_country,
-            c.loyaltytier,
-            c.registrationdate as customer_registrationdate,
-
-            -- D_PRODUCTS
-            p.productname,
-            p.category,
-            p.brand,
-            p.unitprice AS product_master_price,
-            p.cost AS product_cost,
-
-            -- D_STORES
-            s.storename,
-            s.country as store_country,
-            s.city AS store_city,
-            s.region AS store_region,
-            s.currency,
-            s.latitude,
-            s.longitude,
-
-            -- D_SALESCHANNELS
-            sc.saleschannelname,
-
-            -- D_PAYMENTTYPES
-            pt.paymenttypename
-        FROM
-            v_transactions t
-        INNER JOIN d_customers c ON t.customerid = c.customerid
-        INNER JOIN d_products p ON t.productid = p.productid
-        INNER JOIN d_dates d ON t.datekey = d.datekey
-        INNER JOIN d_stores s ON t.storeid = s.storeid
-        INNER JOIN d_saleschannels sc ON t.saleschannelid = sc.saleschannelid
-        INNER JOIN d_paymenttypes pt ON t.paymenttypeid = pt.paymenttypeid
-    ''') AS t
-ORDER BY t.salesid;;
-  }
+view: transactions_bq {
+  sql_table_name: `gemini-looker-demo-dataset.cymbal_gadgets.transactions` ;;
 
 # --- Primary Key ---
   dimension: salesid {
@@ -134,7 +21,7 @@ ORDER BY t.salesid;;
   # --- Metrics (Measures) ---
   measure: count {
     type: count
-    drill_fields: [salesid, orderid, transaction_date_date]
+    drill_fields: [salesid, orderid, transaction_date]
   }
 
   measure: total_revenue {
@@ -178,7 +65,7 @@ ORDER BY t.salesid;;
     value_format_name: percent_2
     type: number
     sql: ${total_transaction_margin}/${total_revenue}
-    ;;
+      ;;
   }
 
   measure: average_transaction_margin {
@@ -208,9 +95,9 @@ ORDER BY t.salesid;;
   }
 
   # --- Date Dimensions ---
-  dimension_group: transaction_date {
+  dimension_group: transaction {
     type: time
-    timeframes: [date, week, month,month_name, quarter, year, raw]
+    timeframes: [date, week, month,month_name, quarter, year, raw, week_of_year]
     sql: ${TABLE}.transaction_date ;;
   }
 
@@ -262,13 +149,13 @@ ORDER BY t.salesid;;
     type: duration
     intervals: [day, month]
     sql_start: ${customer_registration_date_date} ;;
-    sql_end: ${transaction_date_date} ;;
+    sql_end: ${transaction_date} ;;
   }
 
   dimension: sanity_check {
     hidden: no
     type: yesno
-    sql: DATE_DIFF(${transaction_date_date},${customer_registration_date_date}, DAY) > 1 ;;
+    sql: DATE_DIFF(${transaction_date},${customer_registration_date_date}, DAY) > 1 ;;
   }
 
   dimension: loyalty_tier {
@@ -283,17 +170,32 @@ ORDER BY t.salesid;;
     sql: ${TABLE}.productid ;;
   }
 
-  dimension: product_name {
+  dimension: productname {
     type: string
     sql: ${TABLE}.productname ;;
   }
 
-  dimension: product_category {
+  # dimension: product_name {
+  #   type: string
+  #   sql: ${TABLE}.productname ;;
+  # }
+
+  dimension: category {
     type: string
     sql: ${TABLE}.category ;;
   }
 
-  dimension: product_brand {
+  # dimension: product_category {
+  #   type: string
+  #   sql: ${TABLE}.category ;;
+  # }
+
+  # dimension: product_brand {
+  #   type: string
+  #   sql: ${TABLE}.brand ;;
+  # }
+
+  dimension: brand {
     type: string
     sql: ${TABLE}.brand ;;
   }
@@ -363,6 +265,85 @@ ORDER BY t.salesid;;
   dimension: payment_type_name {
     type: string
     sql: ${TABLE}.paymenttypename ;;
+  }
+
+  # =====================================================================
+  # --- NEW FIELDS ADDED FROM 'NEW' FILE ---
+  # =====================================================================
+
+  dimension: storeid {
+    hidden: yes
+    type: number
+    sql: ${TABLE}.storeid ;;
+  }
+
+  dimension: firstname {
+    hidden: yes
+    type: string
+    sql: ${TABLE}.firstname ;;
+  }
+
+  dimension: lastname {
+    hidden: yes
+    type: string
+    sql: ${TABLE}.lastname ;;
+  }
+
+  dimension: shippingcost {
+    hidden: yes
+    type: number
+    sql: ${TABLE}.shippingcost ;;
+  }
+
+  dimension: taxamount {
+    hidden: yes
+    type: number
+    sql: ${TABLE}.taxamount ;;
+  }
+
+  dimension: gross_profit {
+    group_label: "Financials"
+    label: "Gross Profit"
+    description: "Total Price minus Product Cost"
+    type: number
+    value_format_name: usd
+    sql: ${total_price} - (${product_cost} * ${quantity}) ;;
+  }
+
+  measure: total_gross_profit {
+    label: "Total Gross Profit"
+    description: "Sum of gross profit across all transactions."
+    type: sum
+    sql: ${gross_profit} ;;
+    value_format_name: usd_0
+    drill_fields: [transaction_details*]
+  }
+
+  measure: average_order_value {
+    label: "Average Order Value (AOV)"
+    description: "Average revenue generated per transaction."
+    type: average
+    sql: ${total_price} ;;
+    value_format_name: usd
+  }
+
+  measure: unique_customers {
+    label: "Total Unique Customers"
+    type: count_distinct
+    sql: ${customerid} ;;
+  }
+
+  set: transaction_details {
+    fields: [
+      transaction_date,
+      full_customer_name,
+      store_name,
+      productname,
+      category,
+      sales_channel_name,
+      quantity,
+      total_revenue
+    ]
   }
 }
 

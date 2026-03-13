@@ -1,5 +1,5 @@
 include: "/views/bq/*.view"
 
-explore: marketing_event_impact {
+explore: marketing_campaign_impact_bq {
   label: "Marketing and Event Context"
 }

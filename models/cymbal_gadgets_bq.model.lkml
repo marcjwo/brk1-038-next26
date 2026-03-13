@@ -1,5 +1,5 @@
 connection: "default_bigquery_connection"
-
+include: "/dashboards/cymbal_gadgets.dashboard.lookml"
 # include: "/views/bq/*.view.lkml"
 include: "/explores/bq/*.explore.lkml"
 # include all views in the views/ folder in this project
