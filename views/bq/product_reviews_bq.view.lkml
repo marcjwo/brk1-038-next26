@@ -1,5 +1,5 @@
 view: product_reviews_bq {
-  sql_table_name: `gemini-looker-demo-dataset.cymbal_gadgets.product_reviews` ;;
+  sql_table_name: `@{gcp_project}.cymbal_gadgets.product_reviews` ;;
 #   derived_table: {
 #     datagroup_trigger: bq_refresh
 #     sql:

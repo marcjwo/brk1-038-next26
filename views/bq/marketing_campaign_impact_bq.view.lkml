@@ -1,5 +1,5 @@
 view: marketing_campaign_impact_bq {
-  sql_table_name: `gemini-looker-demo-dataset.cymbal_gadgets.marketing_campaign_impact` ;;
+  sql_table_name: `@{gcp_project}.cymbal_gadgets.marketing_campaign_impact` ;;
 #   derived_table: {
 #     datagroup_trigger: bq_refresh
 #     sql:

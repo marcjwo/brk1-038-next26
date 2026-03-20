@@ -1,5 +1,5 @@
 view: transactions_bq {
-  sql_table_name: `gemini-looker-demo-dataset.cymbal_gadgets.transactions` ;;
+  sql_table_name: `@{gcp_project}.cymbal_gadgets.transactions` ;;
 
 # --- Primary Key ---
   dimension: salesid {
@@ -96,6 +96,7 @@ view: transactions_bq {
 
   # --- Date Dimensions ---
   dimension_group: transaction {
+    datatype: date
     type: time
     timeframes: [date, week, month,month_name, quarter, year, raw, week_of_year]
     sql: ${TABLE}.transaction_date ;;
@@ -345,6 +346,26 @@ view: transactions_bq {
       total_revenue
     ]
   }
+
+  dimension: shipment_status {
+    label: "Shipment status"
+    sql: ${TABLE}.shipment_status;;
+  }
+  dimension: shippingmethod {
+    label: "Shipping method"
+    sql: ${TABLE}.shipmentmethod;;
+  }
+
+  dimension: distribution_center_city {
+    label: "Distribution Center"
+    sql: ${TABLE}.distribution_center_city ;;
+    }
+
+  measure: delayed_order_count {
+    label: "Delayed Order Count"
+    type: count
+    filters: [shipment_status: "Delayed"]
+    }
 }
 
 # view: sales {
